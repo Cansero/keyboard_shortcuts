@@ -11,7 +11,5 @@ def on_mn():
 
 
 if __name__ == '__main__':
-    keyboard.add_hotkey("n+m", on_mn)
-    keyboard.add_abbreviation("@@", "hola como estas")
-
-    keyboard.wait('ctrl+alt+tab')
+    macro = keyboard.record()
+    print(macro)
