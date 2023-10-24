@@ -2,3 +2,5 @@
 keyboard_shortcuts
 build
 dist
+__pycache__
+config.json
