@@ -1,69 +1,76 @@
-import json
-import keyboard
-from keyboard import KeyboardEvent
+import threading
+
+from PySide6.QtCore import QSize
+from infi.systray import SysTrayIcon
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QApplication, QDialogButtonBox, QMainWindow, QWidget, \
+    QPushButton
+
 from time import sleep
 
 
-def json_to_event(obj):
-    return KeyboardEvent(event_type=obj['event_type'],
-                         scan_code=obj['scan_code'],
-                         name=obj['name'],
-                         time=obj['time'],
-                         is_keypad=obj['is_keypad'])
+class Message(QMainWindow):
+    def __init__(self):
+        super(Message, self).__init__()
+
+        self.tray = None
+        self.isclosed = False
+
+        self.setWindowTitle('test')
+        self.label = QLabel('Hola')
+        self.button = QPushButton('Hide')
+        self.button.clicked.connect(self.toggle_show)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.button)
+
+        widget = QWidget()
+        widget.setLayout(self.layout)
+        self.setCentralWidget(widget)
+
+    def closeEvent(self, event):
+        self.isclosed = True
+        self.finish()
+        event.accept()
+
+    def toggle_show(self):
+        self.hide()
+
+    def set_tray(self, handler):
+        self.tray = handler
+
+    def finish(self):
+        if self.tray.is_active():
+            thread = threading.Thread(target=terminate, args=[self.tray])
+            thread.start()
+
+    def is_closed(self):
+        return self.isclosed
 
 
-def play_macro(thing_to_play):
-    keyboard.play(thing_to_play, speed_factor=2)
+def win_exec(win):
+    if win.isHidden():
+        win.show()
+    else:
+        win.hide()
 
 
-x = {
-    "Shortcut": [],
-    "Abbreviation": []
-}
+def close_win(win):
+    if not win.is_closed():
+        win.close()
 
-while True:
-    r = input('What to do?\n'
-              'A - Add hotkey\n'
-              'B - Add abbreviation\n'
-              'C - Continue\n')
-    sleep(0.2)
-    match r:
-        case 'A':
-            print('Press shortcut:')
-            macro_name = keyboard.read_hotkey(suppress=False)
-            sleep(0.2)
-            print('Recording macro (esc to finish):')
-            macro = keyboard.record()
-            macro_json = []
-            for kp in macro:
-                macro_json.append(kp.to_json())
-            x['Shortcut'].append([macro_name, macro_json])
 
-        case 'B':
-            abbreviation = input('What to abbreviate: ')
-            short = input('How to abbreviate: ')
-            x['Abbreviation'].append([short, abbreviation])
+def terminate(handler):
+    sleep(1)
+    handler.shutdown()
 
-        case 'C':
-            break
 
-with open('config.json', 'w') as f:
-    json.dump(x, f)
-
-with open('config.json', 'r') as f:
-    fail = json.load(f)
-
-for k, v in fail.items():
-    match k:
-        case 'Shortcut':
-            for key, presses in v:
-                events = []
-                for press in presses:
-                    events.append(json_to_event(json.loads(press)))
-                keyboard.add_hotkey(key, play_macro, [events])
-
-        case 'Abbreviation':
-            for short, abbre in v:
-                keyboard.add_abbreviation(short, abbre)
-
-keyboard.wait('alt+ctrl+tab')
+if __name__ == '__main__':
+    app = QApplication([])
+    x = Message()
+    menu_options = (('Test', None, win_exec, (x,)), ('Quit', None, close_win, (x,)))
+    systray = SysTrayIcon('icon.ico', 'None', menu_options)
+    x.set_tray(systray)
+    systray.start()
+    x.show()
+    app.exec()
