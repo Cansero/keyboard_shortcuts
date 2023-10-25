@@ -1,7 +1,6 @@
 import threading
-
-from PySide6.QtCore import QSize
 from infi.systray import SysTrayIcon
+from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QApplication, QDialogButtonBox, QMainWindow, QWidget, \
     QPushButton
 
@@ -44,6 +43,7 @@ class Message(QMainWindow):
             thread = threading.Thread(target=terminate, args=[self.tray])
             thread.start()
 
+    @property
     def is_closed(self):
         return self.isclosed
 
@@ -56,7 +56,7 @@ def win_exec(win):
 
 
 def close_win(win):
-    if not win.is_closed():
+    if not win.is_closed:
         win.close()
 
 
@@ -68,7 +68,7 @@ def terminate(handler):
 if __name__ == '__main__':
     app = QApplication([])
     x = Message()
-    menu_options = (('Test', None, win_exec, (x,)), ('Quit', None, close_win, (x,)))
+    menu_options = (('Test', None, win_exec, (x,)),)
     systray = SysTrayIcon('icon.ico', 'None', menu_options)
     x.set_tray(systray)
     systray.start()

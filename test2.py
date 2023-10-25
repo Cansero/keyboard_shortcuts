@@ -1,18 +1,48 @@
-from infi.systray import SysTrayIcon
-hover_text = "SysTrayIcon Demo"
-def hello():
-    print("Hello World.")
-def simon():
-    print("Hello Simon.")
-def bye():
-    print('Bye, then.')
-def do_nothing():
-    pass
-menu_options = (('Say Hello', "hello.ico", hello, None),
-                ('Do nothing', None, do_nothing, None),
-                ('A sub-menu', "submenu.ico", (('Say Hello to Simon', "simon.ico", simon, None),
-                                               ('Do nothing', None, do_nothing, None),
-                                              ), None)
-               )
-sysTrayIcon = SysTrayIcon("main.ico", hover_text, menu_options, on_quit=[bye, None], default_menu_index=1)
-sysTrayIcon.start()
+from PySide6.QtCore import QSize, QObject
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QApplication, QDialogButtonBox, QMainWindow, QWidget, \
+    QPushButton, QBoxLayout, QHBoxLayout
+
+from time import sleep
+
+
+class Message(QMainWindow):
+    def __init__(self):
+        super(Message, self).__init__()
+        self.setWindowTitle('test')
+        self.label = QLabel('Hola')
+
+        self.layout = QVBoxLayout()
+        add_to(self.layout, [self.label])
+
+        lista = ['test', 'test2', 'test3']
+        for i in lista:
+            lay = QHBoxLayout()
+            lab = QLabel(i)
+            btn = QPushButton(self, 'print parent')
+            btn.setToolTip(i)
+            btn.clicked.connect(self.print_parent)
+            btn.clicked.emit(lab)
+            add_to(lay, [lab, btn])
+            add_to(self.layout, [lay], True)
+
+        widget = QWidget()
+        widget.setLayout(self.layout)
+        self.setCentralWidget(widget)
+
+    def print_parent(self, lab):
+        lab.setText('lol')
+
+
+def add_to(layout: QBoxLayout, widgets, is_layout=False):
+    for widget in widgets:
+        if is_layout:
+            layout.addLayout(widget)
+        else:
+            layout.addWidget(widget)
+
+
+if __name__ == '__main__':
+    app = QApplication([])
+    x = Message()
+    x.show()
+    app.exec()
