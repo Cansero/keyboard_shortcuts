@@ -18,14 +18,13 @@ def play_macro(thing_to_play):
 
 
 if __name__ == '__main__':
-    try:
-        f = open('config.json', 'r')
-    except FileNotFoundError:
-        f = open('config.json', 'x')
-
     options = dict()
-    if f:
-        options = json.load(f)
+    try:
+        with open('config.json', 'r') as f:
+            options = json.load(f)
+    except FileNotFoundError:
+        with open('config.json', 'x') as f:
+            pass
 
     shortcuts = dict()
     abbreviations = dict()
@@ -38,7 +37,7 @@ if __name__ == '__main__':
                         events = []
                         for press in presses:
                             events.append(json_to_event(json.loads(press)))
-                        s = keyboard.add_hotkey(key, play_macro, [events])
+                        s = keyboard.add_hotkey(key, play_macro, (events,))
                         shortcuts[key] = s
 
                 case 'Abbreviation':
