@@ -1,8 +1,10 @@
 import json
 import keyboard
-from PySide6.QtWidgets import QApplication
 from keyboard import KeyboardEvent
-from win_util import Win
+
+
+def play_macro(macro):
+    keyboard.play(macro, speed_factor=2)
 
 
 def json_to_event(obj):
@@ -13,17 +15,13 @@ def json_to_event(obj):
                          is_keypad=obj['is_keypad'])
 
 
-def play_macro(macro):
-    keyboard.play(macro, speed_factor=2)
-
-
-if __name__ == '__main__':
+def load_file(file):
     options = dict()
     try:
-        with open('config.json', 'r') as f:
+        with open(file, 'r') as f:
             options = json.load(f)
     except FileNotFoundError:
-        with open('config.json', 'x') as f:
+        with open(file, 'x') as f:
             pass
 
     shortcuts = dict()
@@ -42,13 +40,7 @@ if __name__ == '__main__':
 
                 case 'Abbreviation':
                     for short, abbre in v:
-                        s = keyboard.add_abbreviation(short, abbre)
-                        abbreviations[short] = [abbre, s]
+                        keyboard.add_abbreviation(short, abbre)
+                        abbreviations[short] = abbre
 
-    else:
-        pass
-
-    app = QApplication([])
-    x = Win(abbreviations=abbreviations, shortcuts=shortcuts)
-    x.show()
-    app.exec()
+    return shortcuts, abbreviations
