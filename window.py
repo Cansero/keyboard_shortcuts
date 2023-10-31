@@ -2,14 +2,15 @@ from random import randint
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QGroupBox, QApplication, QMenu, \
-    QSystemTrayIcon
+from PySide6.QtWidgets import (
+    QGroupBox, QMenu, QSystemTrayIcon
+)
 
-from test2 import add_to
+from win_util import *
 from utils import *
 
 
-class Win(QDialog):
+class Window(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Shortcuts and Abbreviations')
@@ -20,8 +21,9 @@ class Win(QDialog):
         self.short_grb_lay = QVBoxLayout()
         self.short_grb_lay.setAlignment(Qt.AlignTop)
         self.short_grb.setLayout(self.short_grb_lay)
-        self.addShort = QPushButton('Add new shortcut')
-        add_to(self.short_grb_lay, self.addShort)
+        self.add_short = QPushButton('Add new shortcut')
+        self.add_short.clicked.connect(self.add_shortcut)
+        add_to(self.short_grb_lay, self.add_short)
 
         self.shorts = {}
         self.make_shortcuts_menu()
@@ -31,6 +33,7 @@ class Win(QDialog):
         self.abbre_grb_lay.setAlignment(Qt.AlignTop)
         self.abbre_grb.setLayout(self.abbre_grb_lay)
         self.addAbbre = QPushButton('Add new abbreviation')
+        self.addAbbre.clicked.connect(self.add_abbreviation)
         add_to(self.abbre_grb_lay, self.addAbbre)
 
         self.abbre = {}
@@ -64,9 +67,9 @@ class Win(QDialog):
 
     def make_abbre_menu(self):
         n = randint(0, 10000)
-        for key, abbre in self.abbre.items():
+        for key, abbre in self.abbreviations.items():
             lay = QHBoxLayout()
-            lab = QLabel(key)
+            lab = QLabel(key + ':')
             lab2 = QLabel(abbre)
             btn = QPushButton('Remove')
             btn.clicked.connect(lambda: self.rmv_abbre(n))
@@ -100,10 +103,35 @@ class Win(QDialog):
 
         self.tray_icon.setContextMenu(self.tray_icon_menu)
 
+    def add_shortcut(self):
+        x = AddShort()
+        if x.exec():
+            n = randint(0, 10000)
+            short = x.get_input
+            macro = x.get_macro
+            handler = keyboard.add_hotkey(short, play_macro, (macro,))
 
-if __name__ == '__main__':
-    app = QApplication([])
-    QApplication.setQuitOnLastWindowClosed(False)
-    w = Win()
-    w.show()
-    app.exec()
+            lay = QHBoxLayout()
+            lab = QLabel(short)
+            btn = QPushButton('Remove')
+            btn.clicked.connect(lambda: self.rmv_short(n))
+            add_to(lay, lab, btn)
+            add_to(self.short_grb_lay, lay, is_layout=True)
+            self.shorts[n] = [handler, lay, [lab, btn]]
+
+    def add_abbreviation(self):
+        x = AddAbbre()
+        if x.exec():
+            n = randint(0, 10000)
+            short = x.get_short
+            abbre = x.get_abbre
+            keyboard.add_abbreviation(short, abbre)
+
+            lay = QHBoxLayout()
+            lab = QLabel(short + ':')
+            lab2 = QLabel(abbre)
+            btn = QPushButton('Remove')
+            btn.clicked.connect(lambda: self.rmv_abbre(n))
+            add_to(lay, lab, lab2, btn)
+            add_to(self.abbre_grb_lay, lay, is_layout=True)
+            self.abbre[n] = [short, lay, [lab, lab2, btn]]
