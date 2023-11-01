@@ -75,7 +75,6 @@ class AddShort(QDialog):
 
     def stop_record(self):
         mcr = keyboard.stop_recording()
-        mcr.pop()
         self.macro = mcr
         self.macro_check.setChecked(True)
         self.start_macro.setEnabled(True)
