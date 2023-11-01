@@ -16,31 +16,23 @@ def json_to_event(obj):
 
 
 def load_file(file):
-    options = dict()
+    options = {'Shortcut': {}, 'Abbreviation': {}}
     try:
         with open(file, 'r') as f:
             options = json.load(f)
     except FileNotFoundError:
-        with open(file, 'x') as f:
+        with open(file, 'x') as _f:
             pass
+        save_file(file, options)
+    return options
 
-    shortcuts = dict()
-    abbreviations = dict()
 
-    if options:
-        for k, v in options.items():
-            match k:
-                case 'Shortcut':
-                    for key, presses in v:
-                        events = []
-                        for press in presses:
-                            events.append(json_to_event(json.loads(press)))
-                        s = keyboard.add_hotkey(key, play_macro, (events,))
-                        shortcuts[key] = s
+def save_file(file, data):
+    for short, macro in data['Shortcut'].items():
+        events = []
+        for event in macro:
+            events.append(event.to_json())
+        data['Shortcut'][short] = events
 
-                case 'Abbreviation':
-                    for short, abbre in v:
-                        keyboard.add_abbreviation(short, abbre)
-                        abbreviations[short] = abbre
-
-    return shortcuts, abbreviations
+    with open(file, 'w') as f:
+        json.dump(data, f)
