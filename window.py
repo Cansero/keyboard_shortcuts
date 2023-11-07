@@ -44,7 +44,7 @@ class Window(QDialog):
         self.opt_quit = QAction()
         self.make_tray_menu()
 
-        icon = QIcon('systray/images/heart.png')
+        icon = QIcon('bad.png')
         self.tray_icon.setIcon(icon)
         self.setWindowIcon(icon)
         self.tray_icon.show()
